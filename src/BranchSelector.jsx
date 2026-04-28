@@ -1,9 +1,7 @@
-// src/BranchSelector.jsx
 import React, { useState } from "react";
 import { setUserBranch } from "./data-api.js";
-import { useAuth } from "./auth-context.jsx";
 
-const OPCIONES = [
+const BRANCH_OPTIONS = [
   "Carnes Amparito Tienda",
   "CEDI (Cr.Amp.)",
   "Masaya gold",
@@ -11,67 +9,81 @@ const OPCIONES = [
   "Granada",
   "Produccion",
 ];
-const DEMO_PROVEEDORES = [
-  { nombre: "Industrial Comercial San Martin SA" },
-  { nombre: "Cargill" },
-  { nombre: "Monisa" },
-  { nombre: "Matadero Cacique" },
-  { nombre: "Joksan Reyes" },
-  { nombre: "Sigma alimentos" },
-  { nombre: "Roger Montenegro" },
-  { nombre: "Delmor" },
-  { nombre: "Traspaso (Carnes Amparito)" },
-  { nombre: "Masaya Gold" }
-];
 
-const DEMO_DESTINOS = [
-  { nombre: "Carnes Amparito Tienda" },
-  { nombre: "GRANADA" },
-  { nombre: "CEDI (Car.Amp.)" },
-  { nombre: "Masaya gold" },
-  { nombre: "Masaya Mercado" }
-];
-
-export default function BranchSelector() {
-  const { user } = useAuth();
+export default function BranchSelector({ user, onLogout }) {
   const [branchId, setBranchId] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState(null);
 
-  const guardar = async () => {
+  const handleSave = async () => {
+    if (!user?.uid || !branchId) {
+      return;
+    }
+
+    setSaving(true);
+    setMessage(null);
+
     try {
-      if (!user?.uid) throw new Error("Usuario no autenticado");
-      await setUserBranch(user.uid, branchId);  // <-- PASA STRINGS!
-      alert("Sucursal asignada ✅. Recarga o entra de nuevo.");
-      // Si tienes un hook useBranch con onSnapshot, se actualizará solo;
-      // si no, fuerza reload o redirige.
+      await setUserBranch(user.uid, branchId);
       window.location.reload();
-    } catch (e) {
-      console.error("[BranchSelector] setUserBranch error:", e);
-      alert("No se pudo asignar la sucursal: " + (e?.message || e));
+    } catch (error) {
+      setMessage(error?.message || "No se pudo asignar la sucursal.");
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <div style={{ padding: 24, maxWidth: 420 }}>
-      <h3>Selecciona una sucursal</h3>
-      <select
-        value={branchId}
-        onChange={(e) => setBranchId(e.target.value)}
-        style={{ width: "100%", padding: 8, marginTop: 8 }}
-      >
-        <option value="">— Seleccionar —</option>
-        {OPCIONES.map((op) => (
-          <option key={op} value={op}>{op}</option>
-        ))}
-      </select>
+    <div className="auth-shell">
+      <div className="auth-grid">
+        <section
+          className="app-panel auth-hero"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(53,125,191,0.98) 0%, rgba(71,138,198,0.96) 52%, rgba(244,249,254,0.95) 100%)",
+          }}
+        >
+          <div className="app-chip auth-hero-chip">Configuracion inicial</div>
+          <h1 className="app-title auth-hero-title">Selecciona la sucursal que usara este modulo de inventario.</h1>
+          <p className="auth-hero-copy">
+            La sucursal define el catalogo, los folios y el historial que se mostraran dentro del levantamiento.
+          </p>
+        </section>
 
-      <button
-        type="button"
-        onClick={guardar}
-        style={{ marginTop: 12, padding: "6px 10px" }}
-        disabled={!branchId}
-      >
-        Guardar sucursal
-      </button>
+        <section className="app-panel auth-card">
+          <div className="auth-card-header">
+            <div className="auth-logo">BR</div>
+            <div>
+              <div className="app-title auth-card-title">Sucursal activa</div>
+              <div className="auth-card-subtitle">{user?.email || "Sesion activa"}</div>
+            </div>
+          </div>
+
+          <div className="auth-form">
+            <div>
+              <label className="app-label">Sucursal</label>
+              <select value={branchId} onChange={(event) => setBranchId(event.target.value)} className="app-select">
+                <option value="">Seleccionar sucursal</option>
+                {BRANCH_OPTIONS.map((branch) => (
+                  <option key={branch} value={branch}>
+                    {branch}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {message ? <div className="auth-error">{message}</div> : null}
+
+            <button type="button" className="app-button-primary auth-submit" onClick={handleSave} disabled={!branchId || saving}>
+              {saving ? "Guardando..." : "Guardar sucursal"}
+            </button>
+
+            <button type="button" className="app-button-ghost auth-ghost" onClick={onLogout}>
+              Cambiar usuario
+            </button>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
