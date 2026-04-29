@@ -22,9 +22,11 @@ import {
   normalizeText,
   roundMetric,
 } from "./inventory-session.js";
+import { resolveSicarTriggerBranchId } from "./branches.js";
 
 const SICAR_CATALOG_URL =
   "https://pedidosinterno-3c65d-default-rtdb.firebaseio.com/configuracion/productos.json";
+const SICAR_REQUEST_LOCKED_STATUSES = new Set(["processing", "done", "duplicate"]);
 
 function ensureBranchId(branchId) {
   if (!branchId) {
@@ -48,6 +50,43 @@ function toIsoString(value) {
     return value.toISOString();
   }
   return null;
+}
+
+function normalizeSicarRequestStatus(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function buildSicarIntegrationState(data = {}) {
+  if (!data || typeof data !== "object") return null;
+
+  const requestedBy =
+    typeof data.requestedBy === "string"
+      ? { label: data.requestedBy }
+      : {
+          type: data.requestedBy?.type || "firebase-user",
+          uid: data.requestedBy?.uid || null,
+          email: data.requestedBy?.email || "",
+          label: data.requestedBy?.label || data.requestedBy?.email || data.requestedBy?.uid || "",
+        };
+
+  return {
+    status: normalizeSicarRequestStatus(data.status) || "idle",
+    triggerEvent: data.triggerEvent || "inventory.adjustment.requested",
+    sourceApp: data.sourceApp || "inventario-sanmartin",
+    action: data.action || "create_inventory_adjustment",
+    branchId: data.branchId || "",
+    firebaseBranchId: data.firebaseBranchId || "",
+    sessionId: data.sessionId || "",
+    folio: data.folio || "",
+    requestedAt: toIsoString(data.requestedAt),
+    processedAt: toIsoString(data.processedAt),
+    updatedAt: toIsoString(data.updatedAt),
+    requestedBy,
+    dryRun: Boolean(data.dryRun),
+    jobId: data.jobId || "",
+    ainId: data.ainId || "",
+    message: data.message || data.lastMessage || "",
+  };
 }
 
 function normalizeCatalogItem(item) {
@@ -349,10 +388,36 @@ export function subscribeInventorySessions(branchId, onData, onError) {
     limit(60),
   );
 
-  return onSnapshot(
+  const sicarRequestsRef = collection(db, "branches", branchId, "sicarAdjustmentRequests");
+  let latestSessions = [];
+  let latestSicarRequests = new Map();
+
+  const emitSessions = () => {
+    const mergedSessions = latestSessions.map((session) => {
+      const requestIntegration = latestSicarRequests.get(session.id);
+      if (!requestIntegration) {
+        return session;
+      }
+
+      return {
+        ...session,
+        integrations: {
+          ...(session.integrations || {}),
+          sicar: {
+            ...(session.integrations?.sicar || {}),
+            ...requestIntegration,
+          },
+        },
+      };
+    });
+
+    onData(mergedSessions);
+  };
+
+  const unsubscribeInventory = onSnapshot(
     inventoryQuery,
     (snapshot) => {
-      const sessions = snapshot.docs.map((item) => {
+      latestSessions = snapshot.docs.map((item) => {
         const data = item.data() || {};
         return {
           id: item.id,
@@ -365,12 +430,31 @@ export function subscribeInventorySessions(branchId, onData, onError) {
         };
       });
 
-      onData(sessions);
+      emitSessions();
     },
     (error) => {
       onError?.(error);
     },
   );
+
+  const unsubscribeSicarRequests = onSnapshot(
+    sicarRequestsRef,
+    (snapshot) => {
+      latestSicarRequests = new Map(
+        snapshot.docs.map((item) => [item.id, buildSicarIntegrationState(item.data() || {})]).filter(([, value]) => value),
+      );
+
+      emitSessions();
+    },
+    (error) => {
+      onError?.(error);
+    },
+  );
+
+  return () => {
+    unsubscribeInventory();
+    unsubscribeSicarRequests();
+  };
 }
 
 export function summarizeInventorySession(session) {
@@ -391,27 +475,103 @@ export function summarizeInventorySession(session) {
   };
 }
 
-export async function uploadInventorySessionToSicar({ branchId, sessionId, idToken, dryRun = false }) {
+export async function requestInventorySessionSicarAdjustment({
+  branchId,
+  sessionId,
+  actor,
+  dryRun = false,
+}) {
   ensureBranchId(branchId);
-
-  const response = await fetch("/.netlify/functions/sicar-inventory-adjustment", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${idToken}`,
-    },
-    body: JSON.stringify({
-      branchId,
-      sessionId,
-      dryRun,
-    }),
-  });
-
-  const payload = await response.json().catch(() => ({}));
-
-  if (!response.ok || !payload?.ok) {
-    throw new Error(payload?.error || payload?.message || "No fue posible subir el levantamiento a SICAR.");
+  if (!sessionId) {
+    throw new Error("No se encontro el identificador del levantamiento.");
   }
 
-  return payload;
+  const sessionRef = doc(db, "branches", branchId, "levantamientosInventario", sessionId);
+  const requestRef = doc(db, "branches", branchId, "sicarAdjustmentRequests", sessionId);
+
+  return runTransaction(db, async (transaction) => {
+    const sessionSnapshot = await transaction.get(sessionRef);
+    if (!sessionSnapshot.exists()) {
+      throw new Error("No existe el levantamiento que intentas subir a SICAR.");
+    }
+
+    const session = sessionSnapshot.data() || {};
+    if (session.status !== "capturado") {
+      throw new Error("Solo se pueden subir a SICAR levantamientos finalizados.");
+    }
+
+    const requestSnapshot = await transaction.get(requestRef);
+    const currentRequest = requestSnapshot.exists() ? requestSnapshot.data() || {} : {};
+    const currentStatus = normalizeSicarRequestStatus(currentRequest.status);
+
+    if (SICAR_REQUEST_LOCKED_STATUSES.has(currentStatus)) {
+      return {
+        ok: true,
+        mode: "locked",
+        status: currentStatus,
+        folio: session.folio || "",
+        message:
+          currentStatus === "processing"
+            ? "Este levantamiento ya esta en proceso dentro del integrador SICAR."
+            : currentStatus === "done"
+              ? "Este levantamiento ya fue subido a SICAR."
+              : "Este levantamiento ya habia sido marcado como duplicado en SICAR.",
+        jobId: currentRequest.jobId || "",
+        ainId: currentRequest.ainId || "",
+      };
+    }
+
+    const requestedBy = {
+      type: "firebase-user",
+      uid: actor?.uid || null,
+      email: actor?.email || "",
+      label: actor?.label || actor?.email || actor?.uid || "Sesion activa",
+    };
+
+    transaction.set(
+      requestRef,
+      {
+        triggerEvent: "inventory.adjustment.requested",
+        sourceApp: "inventario-sanmartin",
+        action: "create_inventory_adjustment",
+        branchId: resolveSicarTriggerBranchId(branchId),
+        firebaseBranchId: branchId,
+        sessionId,
+        folio: session.folio || "",
+        requestedAt: serverTimestamp(),
+        requestedBy,
+        dryRun: Boolean(dryRun),
+        status: "requested",
+        message: "Solicitud registrada desde la app de inventario.",
+        updatedAt: serverTimestamp(),
+        processedAt: null,
+        jobId: null,
+        ainId: null,
+      },
+      { merge: true },
+    );
+
+    transaction.set(
+      sessionRef,
+      {
+        integrations: {
+          sicar: {
+            status: "requested",
+            requestedAt: serverTimestamp(),
+            requestedBy: requestedBy.label,
+            message: "Solicitud registrada en Firebase para el integrador SICAR.",
+          },
+        },
+      },
+      { merge: true },
+    );
+
+    return {
+      ok: true,
+      mode: requestSnapshot.exists() ? "requested-again" : "requested",
+      status: "requested",
+      folio: session.folio || "",
+      message: "Solicitud de ajuste registrada en Firebase.",
+    };
+  });
 }

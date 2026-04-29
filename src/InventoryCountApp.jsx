@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   readInventorySetup,
+  requestInventorySessionSicarAdjustment,
   saveInventorySession,
   subscribeInventorySessions,
   summarizeInventorySession,
   syncSicarCatalogFromPedidos,
-  uploadInventorySessionToSicar,
 } from "./inventory-api.js";
 import {
   buildEditableSessionState,
@@ -58,6 +58,8 @@ const NAV_ITEMS = [
     color: "#f97316",
   },
 ];
+
+const SICAR_LOCKED_STATUSES = new Set(["processing", "done", "duplicate"]);
 
 const ICONS = {
   app: (
@@ -233,6 +235,44 @@ function normalizeSearch(value = "") {
     .trim();
 }
 
+function normalizeSicarStatus(value) {
+  return String(value || "idle").trim().toLowerCase() || "idle";
+}
+
+function getSicarStatusLabel(status) {
+  const labels = {
+    idle: "Sin trigger",
+    requested: "Solicitado",
+    processing: "Procesando",
+    "dry-run": "Dry-run",
+    done: "Subido a SICAR",
+    duplicate: "Duplicado",
+    error: "Error SICAR",
+    pending: "Pendiente",
+    "pending-config": "Falta integrador",
+    triggered: "Trigger enviado",
+    uploaded: "Enviado",
+  };
+
+  return labels[status] || status;
+}
+
+function getSicarStatusMessage(integration) {
+  const status = normalizeSicarStatus(integration?.status);
+  if (integration?.message) return integration.message;
+
+  const messages = {
+    requested: "La solicitud ya esta en Firebase y el integrador la puede tomar en cualquier momento.",
+    processing: "El integrador ya tomo la solicitud y esta procesando el ajuste en SICAR.",
+    "dry-run": "El integrador proceso este trigger en modo de prueba y no aplico el ajuste final.",
+    done: "El levantamiento ya fue aplicado correctamente en SICAR.",
+    duplicate: "El integrador detecto que este levantamiento ya habia sido subido antes.",
+    error: "El integrador reporto un error. Puedes revisar el mensaje y volver a solicitarlo.",
+  };
+
+  return messages[status] || "";
+}
+
 function createInitialZones() {
   return [createZone("Zona principal", 0)];
 }
@@ -272,19 +312,11 @@ function StatusPill({ status }) {
 }
 
 function SicarStatusPill({ integration }) {
-  const status = integration?.status || "idle";
-  const labels = {
-    idle: "Sin trigger",
-    pending: "Pendiente",
-    "pending-config": "Falta integrador",
-    error: "Error SICAR",
-    triggered: "Trigger enviado",
-    uploaded: "Enviado",
-  };
+  const status = normalizeSicarStatus(integration?.status);
 
   return (
     <span className={`app-chip inventory-sicar-chip inventory-sicar-chip-${status}`}>
-      {labels[status] || status}
+      {getSicarStatusLabel(status)}
     </span>
   );
 }
@@ -791,8 +823,23 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading }) {
   const [open, setOpen] = useState(false);
   const summary = summarizeInventorySession(session);
   const zoneSummaries = Array.isArray(session.zoneSummaries) ? session.zoneSummaries : [];
-  const canUpload = session.status === "capturado";
   const sicarIntegration = session.integrations?.sicar || null;
+  const sicarStatus = normalizeSicarStatus(sicarIntegration?.status);
+  const canUpload = session.status === "capturado";
+  const uploadLocked = SICAR_LOCKED_STATUSES.has(sicarStatus);
+  const requestedByLabel =
+    typeof sicarIntegration?.requestedBy === "string"
+      ? sicarIntegration.requestedBy
+      : sicarIntegration?.requestedBy?.label || sicarIntegration?.uploadedBy || "";
+  const uploadLabel = uploading
+    ? "Solicitando..."
+    : sicarStatus === "processing"
+      ? "Procesando en SICAR"
+      : sicarStatus === "done"
+        ? "Subido a SICAR"
+        : sicarStatus === "duplicate"
+          ? "Ya estaba subido"
+          : "Subir a SICAR";
 
   return (
     <article className="app-card inventory-history-card">
@@ -841,9 +888,36 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading }) {
 
       {session.observaciones ? <div className="inventory-history-note">{session.observaciones}</div> : null}
 
-      {sicarIntegration?.jobId ? (
+      {sicarIntegration?.message ||
+      sicarIntegration?.jobId ||
+      sicarIntegration?.ainId ||
+      sicarIntegration?.requestedAt ||
+      sicarIntegration?.processedAt ? (
         <div className="inventory-history-note">
-          <strong>Job integrador:</strong> {sicarIntegration.jobId}
+          <div>
+            <strong>Estado SICAR:</strong> {getSicarStatusMessage(sicarIntegration) || getSicarStatusLabel(sicarStatus)}
+          </div>
+          {sicarIntegration?.ainId ? (
+            <div>
+              <strong>Ajuste SICAR:</strong> {sicarIntegration.ainId}
+            </div>
+          ) : null}
+          {sicarIntegration?.jobId ? (
+            <div>
+              <strong>Job integrador:</strong> {sicarIntegration.jobId}
+            </div>
+          ) : null}
+          {sicarIntegration?.requestedAt ? (
+            <div>
+              <strong>Solicitado:</strong> {formatDateTime(sicarIntegration.requestedAt)}
+              {requestedByLabel ? ` / ${requestedByLabel}` : ""}
+            </div>
+          ) : null}
+          {sicarIntegration?.processedAt ? (
+            <div>
+              <strong>Procesado:</strong> {formatDateTime(sicarIntegration.processedAt)}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -867,9 +941,14 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading }) {
             Reporte / PDF
           </button>
           {canUpload ? (
-            <button type="button" className="app-button-primary" onClick={() => onUpload(session)} disabled={uploading}>
+            <button
+              type="button"
+              className="app-button-primary"
+              onClick={() => onUpload(session)}
+              disabled={uploading || uploadLocked}
+            >
               {ICONS.upload}
-              {uploading ? "Disparando..." : "Disparar trigger SICAR"}
+              {uploadLabel}
             </button>
           ) : null}
         </div>
@@ -932,9 +1011,63 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
   const [zones, setZones] = useState(createInitialZones);
   const [activeZoneId, setActiveZoneId] = useState(null);
   const [salesAdjustments, setSalesAdjustments] = useState([]);
+  const previousSicarStatusesRef = useRef(new Map());
 
   const busy = savingDraft || finalizing;
   const activeNav = NAV_ITEMS.find((item) => item.key === view) || NAV_ITEMS[0];
+
+  useEffect(() => {
+    const nextStatuses = new Map();
+    let nextBanner = null;
+
+    sessions.forEach((session) => {
+      const integration = session.integrations?.sicar || null;
+      const status = normalizeSicarStatus(integration?.status);
+      const previousStatus = previousSicarStatusesRef.current.get(session.id);
+
+      nextStatuses.set(session.id, status);
+
+      if (!previousStatus || previousStatus === status) {
+        return;
+      }
+
+      const folio = session.folio || session.id;
+      if (status === "processing") {
+        nextBanner = {
+          type: "info",
+          text: `Levantamiento ${folio} ya esta siendo procesado por el integrador SICAR.`,
+        };
+      } else if (status === "done") {
+        nextBanner = {
+          type: "success",
+          text: integration?.ainId
+            ? `Levantamiento ${folio} aplicado en SICAR. Ajuste ${integration.ainId}.`
+            : `Levantamiento ${folio} aplicado en SICAR correctamente.`,
+        };
+      } else if (status === "duplicate") {
+        nextBanner = {
+          type: "info",
+          text: integration?.message || `Levantamiento ${folio} ya habia sido subido anteriormente a SICAR.`,
+        };
+      } else if (status === "dry-run") {
+        nextBanner = {
+          type: "info",
+          text: integration?.message || `Levantamiento ${folio} procesado en modo dry-run por el integrador.`,
+        };
+      } else if (status === "error") {
+        nextBanner = {
+          type: "error",
+          text: integration?.message || `El integrador SICAR devolvio un error para el levantamiento ${folio}.`,
+        };
+      }
+    });
+
+    previousSicarStatusesRef.current = nextStatuses;
+
+    if (nextBanner) {
+      setMessage(nextBanner);
+    }
+  }, [sessions]);
 
   useEffect(() => {
     let alive = true;
@@ -1336,29 +1469,46 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
       return;
     }
 
+    const currentSicarStatus = normalizeSicarStatus(session.integrations?.sicar?.status);
+    if (SICAR_LOCKED_STATUSES.has(currentSicarStatus)) {
+      setMessage({
+        type: currentSicarStatus === "done" || currentSicarStatus === "duplicate" ? "info" : "success",
+        text:
+          currentSicarStatus === "processing"
+            ? "Este levantamiento ya esta en proceso dentro del integrador SICAR."
+            : currentSicarStatus === "done"
+              ? "Este levantamiento ya fue subido a SICAR."
+              : "Este levantamiento ya habia sido marcado como duplicado en SICAR.",
+      });
+      return;
+    }
+
     setUploadingSessionId(session.id);
 
     try {
-      const idToken = await user.getIdToken();
-      const result = await uploadInventorySessionToSicar({
+      const result = await requestInventorySessionSicarAdjustment({
         branchId,
         sessionId: session.id,
-        idToken,
+        actor: {
+          uid: user?.uid || null,
+          email: user?.email || "",
+          label: user?.email || user?.uid || "Sesion activa",
+        },
       });
 
       setMessage({
-        type: result.mode === "triggered" || result.mode === "uploaded" ? "success" : "info",
+        type: result.mode === "locked" ? "info" : "success",
         text:
-          result.mode === "triggered"
-            ? `Levantamiento ${session.folio} disparo el integrador SICAR correctamente.`
-            : result.mode === "uploaded"
-              ? `Levantamiento ${session.folio} enviado al endpoint SICAR correctamente.`
-              : result.message || "La preparacion del trigger SICAR quedo registrada.",
+          result.mode === "locked"
+            ? result.message || "Este levantamiento ya tiene una solicitud activa o cerrada en SICAR."
+            : result.mode === "requested-again"
+              ? `Levantamiento ${session.folio} solicitado nuevamente en Firebase para el integrador SICAR.`
+              : `Levantamiento ${session.folio} enviado a Firebase para que el integrador SICAR lo procese.`,
       });
     } catch (error) {
       setMessage({
         type: "error",
-        text: error?.message || "No fue posible subir el levantamiento a SICAR.",
+        text: error?.message || "No fue posible crear la solicitud SICAR en Firebase.",
       });
     } finally {
       setUploadingSessionId("");

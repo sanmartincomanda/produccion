@@ -1086,15 +1086,32 @@ textarea::placeholder {
   color: #a0610f;
 }
 
+.inventory-sicar-chip-requested,
+.inventory-sicar-chip-dry-run {
+  background: rgba(245, 158, 11, 0.14);
+  color: #a0610f;
+}
+
+.inventory-sicar-chip-processing {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2556a6;
+}
+
 .inventory-sicar-chip-error {
   background: rgba(220, 91, 75, 0.12);
   color: #9f2f22;
 }
 
+.inventory-sicar-chip-done,
 .inventory-sicar-chip-triggered,
 .inventory-sicar-chip-uploaded {
   background: rgba(45, 159, 111, 0.14);
   color: #117451;
+}
+
+.inventory-sicar-chip-duplicate {
+  background: rgba(100, 116, 139, 0.12);
+  color: #475569;
 }
 
 .inventory-workspace {

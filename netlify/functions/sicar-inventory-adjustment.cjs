@@ -216,6 +216,7 @@ async function resolveActor(event, branchId) {
   };
 }
 
+// Legacy helper: the inventory app now writes SICAR triggers directly to Firestore.
 exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
     return jsonResponse(200, { ok: true });

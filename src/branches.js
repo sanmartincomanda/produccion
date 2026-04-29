@@ -9,6 +9,10 @@ export const DEFAULT_LOGIN_BRANCHES = [
   { id: "CEDI PRODUCCION", label: "CEDI PRODUCCION", aliases: ["CEDI PRODUCCION"] },
 ];
 
+const SICAR_TRIGGER_BRANCH_MAP = {
+  "CARNES SAN MARTIN GRANADA": "Granada",
+};
+
 function normalizeText(value) {
   return String(value || "").trim();
 }
@@ -61,6 +65,10 @@ export function resolveLoginBranch(value, options = DEFAULT_LOGIN_BRANCHES) {
       option.aliases.some((candidate) => normalizeUpper(candidate) === normalizedValue),
     ) || null
   );
+}
+
+export function resolveSicarTriggerBranchId(branchId) {
+  return SICAR_TRIGGER_BRANCH_MAP[normalizeText(branchId)] || normalizeText(branchId);
 }
 
 export async function loadLoginBranchOptions() {
