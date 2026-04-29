@@ -29,7 +29,7 @@ function AuthScreen({ email, password, onEmailChange, onPasswordChange, onSubmit
           className="app-panel auth-hero"
           style={{
             background:
-              "linear-gradient(135deg, rgba(53,125,191,0.98) 0%, rgba(71,138,198,0.96) 52%, rgba(244,249,254,0.95) 100%)",
+              "linear-gradient(135deg, rgba(233,136,40,0.98) 0%, rgba(247,167,88,0.96) 52%, rgba(255,247,239,0.95) 100%)",
           }}
         >
           <div className="app-chip auth-hero-chip">Inventario alto nivel</div>

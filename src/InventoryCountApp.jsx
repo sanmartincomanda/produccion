@@ -41,21 +41,21 @@ const NAV_ITEMS = [
     label: "Levantamiento",
     title: "Levantamiento por zonas",
     subtitle: "Cuenta por zona, resta ventas pendientes y deja un total limpio para SICAR.",
-    color: "#38bdf8",
+    color: "#f59e0b",
   },
   {
     key: "catalogo",
     label: "Catalogo SICAR",
     title: "Catalogo central",
     subtitle: "Sincroniza el maestro de productos y valida que la sucursal trabaje con la ultima base.",
-    color: "#22c55e",
+    color: "#fb923c",
   },
   {
     key: "historial",
     label: "Historial",
     title: "Sesiones guardadas",
     subtitle: "Continua borradores en espera, imprime reportes y sube levantamientos finalizados a SICAR.",
-    color: "#f59e0b",
+    color: "#f97316",
   },
 ];
 
@@ -1387,7 +1387,7 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
         className="app-panel inventory-header"
         style={{
           background:
-            "linear-gradient(135deg, rgba(54,124,189,0.98) 0%, rgba(73,138,197,0.96) 46%, rgba(232,241,249,0.96) 100%)",
+            "linear-gradient(135deg, rgba(232,128,28,0.98) 0%, rgba(245,158,61,0.96) 46%, rgba(255,245,235,0.96) 100%)",
         }}
       >
         <div className="inventory-header-glow" style={{ background: `linear-gradient(135deg, ${activeNav.color}20, transparent 54%)` }} />
@@ -1429,10 +1429,10 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
         </div>
 
         <div className="inventory-metrics">
-          <MetricCard label="Zonas activas" value={inventorySnapshot.totals.zoneCount} helper="Divide el levantamiento por areas" accent="#38bdf8" />
-          <MetricCard label="Conteo bruto" value={`${formatMetric(inventorySnapshot.totals.grossWeight)} LB`} helper={`${inventorySnapshot.totals.grossBoxes} cajas contadas`} accent="#818cf8" />
-          <MetricCard label="Ventas a restar" value={`${formatMetric(inventorySnapshot.totals.salesWeight)} LB`} helper={`${inventorySnapshot.totals.salesBoxes} cajas en ajuste`} accent="#f59e0b" />
-          <MetricCard label="Total SICAR" value={`${formatMetric(inventorySnapshot.totals.netWeight)} LB`} helper={formatDate(fecha)} accent="#22c55e" />
+          <MetricCard label="Zonas activas" value={inventorySnapshot.totals.zoneCount} helper="Divide el levantamiento por areas" accent="#f59e0b" />
+          <MetricCard label="Conteo bruto" value={`${formatMetric(inventorySnapshot.totals.grossWeight)} LB`} helper={`${inventorySnapshot.totals.grossBoxes} cajas contadas`} accent="#fb923c" />
+          <MetricCard label="Ventas a restar" value={`${formatMetric(inventorySnapshot.totals.salesWeight)} LB`} helper={`${inventorySnapshot.totals.salesBoxes} cajas en ajuste`} accent="#f97316" />
+          <MetricCard label="Total SICAR" value={`${formatMetric(inventorySnapshot.totals.netWeight)} LB`} helper={formatDate(fecha)} accent="#fdba74" />
         </div>
       </header>
 
