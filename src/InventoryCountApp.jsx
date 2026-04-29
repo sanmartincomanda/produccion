@@ -833,13 +833,19 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading }) {
       : sicarIntegration?.requestedBy?.label || sicarIntegration?.uploadedBy || "";
   const uploadLabel = uploading
     ? "Solicitando..."
+    : sicarStatus === "requested"
+      ? "Solicitud registrada"
     : sicarStatus === "processing"
       ? "Procesando en SICAR"
+      : sicarStatus === "dry-run"
+        ? "Dry-run procesado"
       : sicarStatus === "done"
         ? "Subido a SICAR"
         : sicarStatus === "duplicate"
           ? "Ya estaba subido"
-          : "Subir a SICAR";
+          : sicarStatus === "error"
+            ? "Reintentar SICAR"
+            : "Subir a SICAR";
 
   return (
     <article className="app-card inventory-history-card">
