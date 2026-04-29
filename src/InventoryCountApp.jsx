@@ -271,6 +271,24 @@ function StatusPill({ status }) {
   return <span className={`inventory-status-pill inventory-status-pill-${status}`}>{label}</span>;
 }
 
+function SicarStatusPill({ integration }) {
+  const status = integration?.status || "idle";
+  const labels = {
+    idle: "Sin trigger",
+    pending: "Pendiente",
+    "pending-config": "Falta integrador",
+    error: "Error SICAR",
+    triggered: "Trigger enviado",
+    uploaded: "Enviado",
+  };
+
+  return (
+    <span className={`app-chip inventory-sicar-chip inventory-sicar-chip-${status}`}>
+      {labels[status] || status}
+    </span>
+  );
+}
+
 function SkuSearchField({ products, selectedSku, onSelect }) {
   const selectedProduct = useMemo(
     () => products.find((item) => item.sku === selectedSku) || null,
@@ -774,6 +792,7 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading }) {
   const summary = summarizeInventorySession(session);
   const zoneSummaries = Array.isArray(session.zoneSummaries) ? session.zoneSummaries : [];
   const canUpload = session.status === "capturado";
+  const sicarIntegration = session.integrations?.sicar || null;
 
   return (
     <article className="app-card inventory-history-card">
@@ -787,6 +806,7 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading }) {
 
         <div className="inventory-history-chips">
           <StatusPill status={session.status} />
+          <SicarStatusPill integration={sicarIntegration} />
           <span className="app-chip">{summary.zoneCount} zonas</span>
           <span className="app-chip">{formatMetric(summary.totalPesoLb)} LB netos</span>
         </div>
@@ -821,6 +841,12 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading }) {
 
       {session.observaciones ? <div className="inventory-history-note">{session.observaciones}</div> : null}
 
+      {sicarIntegration?.jobId ? (
+        <div className="inventory-history-note">
+          <strong>Job integrador:</strong> {sicarIntegration.jobId}
+        </div>
+      ) : null}
+
       {summary.warnings.length > 0 ? (
         <div className="inventory-inline-message inventory-inline-message-error inventory-history-warning">
           {ICONS.warning}
@@ -843,7 +869,7 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading }) {
           {canUpload ? (
             <button type="button" className="app-button-primary" onClick={() => onUpload(session)} disabled={uploading}>
               {ICONS.upload}
-              {uploading ? "Subiendo..." : "Subir a SICAR"}
+              {uploading ? "Disparando..." : "Disparar trigger SICAR"}
             </button>
           ) : null}
         </div>
@@ -1321,11 +1347,13 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
       });
 
       setMessage({
-        type: result.mode === "uploaded" ? "success" : "info",
+        type: result.mode === "triggered" || result.mode === "uploaded" ? "success" : "info",
         text:
-          result.mode === "uploaded"
-            ? `Levantamiento ${session.folio} enviado a SICAR correctamente.`
-            : result.message || "La preparacion para SICAR quedo registrada.",
+          result.mode === "triggered"
+            ? `Levantamiento ${session.folio} disparo el integrador SICAR correctamente.`
+            : result.mode === "uploaded"
+              ? `Levantamiento ${session.folio} enviado al endpoint SICAR correctamente.`
+              : result.message || "La preparacion del trigger SICAR quedo registrada.",
       });
     } catch (error) {
       setMessage({

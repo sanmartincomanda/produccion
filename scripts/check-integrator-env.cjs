@@ -16,6 +16,9 @@ const requiredMySqlVars = [
 
 const optionalIntegrationVars = [
   "INTERNAL_API_TOKEN",
+  "SICAR_TRIGGER_URL",
+  "SICAR_TRIGGER_METHOD",
+  "SICAR_TRIGGER_TOKEN",
   "SICAR_API_URL",
   "SICAR_API_METHOD",
   "SICAR_API_TOKEN",

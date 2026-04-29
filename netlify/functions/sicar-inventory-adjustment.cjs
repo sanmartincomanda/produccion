@@ -103,6 +103,28 @@ function buildSicarPayload(branchId, sessionId, session) {
   };
 }
 
+function buildTriggerPayload({ branchId, sessionId, session, actor, dryRun }) {
+  const adjustment = buildSicarPayload(branchId, sessionId, session);
+
+  return {
+    triggerEvent: "inventory.adjustment.requested",
+    sourceApp: "inventario-sanmartin",
+    action: "create_inventory_adjustment",
+    branchId,
+    sessionId,
+    folio: session.folio || "",
+    requestedAt: new Date().toISOString(),
+    requestedBy: {
+      type: actor.type,
+      uid: actor.uid || null,
+      email: actor.email || "",
+      label: actor.label,
+    },
+    dryRun,
+    adjustment,
+  };
+}
+
 function parseJsonBody(body) {
   if (!body) return {};
   try {
@@ -113,24 +135,27 @@ function parseJsonBody(body) {
 }
 
 async function callSicarApi(payload) {
-  const endpoint = process.env.SICAR_API_URL;
+  const endpoint = process.env.SICAR_TRIGGER_URL || process.env.SICAR_API_URL;
   if (!endpoint) {
     return {
       skipped: true,
-      reason: "SICAR_API_URL no esta configurado todavia.",
+      reason: "SICAR_TRIGGER_URL o SICAR_API_URL no estan configurados todavia.",
     };
   }
 
   const headers = {
     "content-type": "application/json",
+    "x-trigger-source": "inventario-sanmartin",
+    "x-trigger-event": "inventory.adjustment.requested",
   };
 
-  if (process.env.SICAR_API_TOKEN) {
-    headers.authorization = `Bearer ${process.env.SICAR_API_TOKEN}`;
+  const triggerToken = process.env.SICAR_TRIGGER_TOKEN || process.env.SICAR_API_TOKEN;
+  if (triggerToken) {
+    headers.authorization = `Bearer ${triggerToken}`;
   }
 
   const response = await fetch(endpoint, {
-    method: process.env.SICAR_API_METHOD || "POST",
+    method: process.env.SICAR_TRIGGER_METHOD || process.env.SICAR_API_METHOD || "POST",
     headers,
     body: JSON.stringify(payload),
   });
@@ -148,6 +173,7 @@ async function callSicarApi(payload) {
     ok: response.ok,
     status: response.status,
     body: parsedBody,
+    endpoint,
   };
 }
 
@@ -232,7 +258,13 @@ exports.handler = async (event) => {
       });
     }
 
-    const payload = buildSicarPayload(branchId, sessionId, session);
+    const payload = buildTriggerPayload({
+      branchId,
+      sessionId,
+      session,
+      actor,
+      dryRun,
+    });
 
     await sessionRef.set(
       {
@@ -240,11 +272,12 @@ exports.handler = async (event) => {
           sicar: {
             lastPreparedAt: FieldValue.serverTimestamp(),
             lastPreparedBy: actor.label,
+            lastTriggerEvent: payload.triggerEvent,
             lastPayloadPreview: {
               folio: payload.folio,
-              totalLines: payload.totalLines,
-              totalBoxes: payload.totalBoxes,
-              totalWeightLb: payload.totalWeightLb,
+              totalLines: payload.adjustment.totalLines,
+              totalBoxes: payload.adjustment.totalBoxes,
+              totalWeightLb: payload.adjustment.totalWeightLb,
             },
           },
         },
@@ -256,7 +289,7 @@ exports.handler = async (event) => {
       return jsonResponse(200, {
         ok: true,
         mode: "dry-run",
-        message: "Payload generado correctamente. No se envio a SICAR.",
+        message: "Trigger generado correctamente. No se envio al integrador SICAR.",
         payload,
       });
     }
@@ -272,6 +305,7 @@ exports.handler = async (event) => {
               lastAttemptAt: FieldValue.serverTimestamp(),
               lastAttemptBy: actor.label,
               lastMessage: upstream.reason,
+              lastTriggerTarget: null,
             },
           },
         },
@@ -294,6 +328,7 @@ exports.handler = async (event) => {
               status: "error",
               lastAttemptAt: FieldValue.serverTimestamp(),
               lastAttemptBy: actor.label,
+              lastTriggerTarget: upstream.endpoint,
               lastHttpStatus: upstream.status,
               lastError: upstream.body,
             },
@@ -309,16 +344,30 @@ exports.handler = async (event) => {
       });
     }
 
+    const accepted =
+      upstream.status === 202 ||
+      upstream.body?.accepted === true ||
+      upstream.body?.queued === true ||
+      upstream.body?.triggered === true;
+    const jobId =
+      upstream.body?.jobId ||
+      upstream.body?.triggerId ||
+      upstream.body?.queueId ||
+      null;
+    const integrationStatus = accepted ? "triggered" : "uploaded";
+
     await sessionRef.set(
       {
         integrations: {
           sicar: {
-              status: "uploaded",
-              uploadedAt: FieldValue.serverTimestamp(),
-              uploadedBy: actor.label,
-              lastHttpStatus: upstream.status,
-              lastResponse: upstream.body,
-            },
+            status: integrationStatus,
+            uploadedAt: FieldValue.serverTimestamp(),
+            uploadedBy: actor.label,
+            lastTriggerTarget: upstream.endpoint,
+            lastHttpStatus: upstream.status,
+            lastResponse: upstream.body,
+            jobId,
+          },
         },
       },
       { merge: true },
@@ -326,8 +375,11 @@ exports.handler = async (event) => {
 
     return jsonResponse(200, {
       ok: true,
-      mode: "uploaded",
-      message: "Levantamiento enviado a SICAR correctamente.",
+      mode: integrationStatus,
+      message: accepted
+        ? "Trigger enviado al integrador SICAR correctamente."
+        : "Levantamiento enviado al endpoint SICAR correctamente.",
+      jobId,
       upstream,
     });
   } catch (error) {
