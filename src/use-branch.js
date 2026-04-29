@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { auth } from "./firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "./firebase";
+import { loadLoginBranchOptions, resolveLoginBranch } from "./branches.js";
 
 export function useBranch() {
   const [branchId, setBranchId] = useState(null);
@@ -34,10 +35,15 @@ export function useBranch() {
         const user = await waitForAuth(); // una única espera
         if (!user) return finish(null);
 
-        // 2) leer users/{uid} una sola vez
-        const ref = doc(db, "users", user.uid);
-        const snap = await getDoc(ref);
-        finish(snap.exists() ? snap.data().branchId : null);
+        // 2) leer users/{uid} y validar contra las sucursales permitidas
+        const [snap, branchOptions] = await Promise.all([
+          getDoc(doc(db, "users", user.uid)),
+          loadLoginBranchOptions(),
+        ]);
+
+        const savedBranchId = snap.exists() ? snap.data().branchId : null;
+        const resolvedBranch = resolveLoginBranch(savedBranchId, branchOptions);
+        finish(resolvedBranch ? resolvedBranch.id : null);
       } catch (e) {
         console.error("[useBranch] error:", e);
         finish(null);

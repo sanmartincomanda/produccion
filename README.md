@@ -69,7 +69,7 @@ Body minimo:
 
 ```json
 {
-  "branchId": "Granada",
+  "branchId": "CARNES SAN MARTIN GRANADA",
   "sessionId": "abc123",
   "dryRun": true
 }

@@ -1,19 +1,39 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { DEFAULT_LOGIN_BRANCHES, loadLoginBranchOptions, normalizeLoginBranchOptions } from "./branches.js";
 import { setUserBranch } from "./data-api.js";
-
-const BRANCH_OPTIONS = [
-  "Carnes Amparito Tienda",
-  "CEDI (Cr.Amp.)",
-  "Masaya gold",
-  "Masaya Mercado",
-  "Granada",
-  "Produccion",
-];
 
 export default function BranchSelector({ user, onLogout }) {
   const [branchId, setBranchId] = useState("");
+  const [branchOptions, setBranchOptions] = useState(() => normalizeLoginBranchOptions(DEFAULT_LOGIN_BRANCHES));
+  const [loadingBranches, setLoadingBranches] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+
+    const loadBranchOptions = async () => {
+      setLoadingBranches(true);
+
+      try {
+        if (!alive) return;
+        const normalizedOptions = await loadLoginBranchOptions();
+        setBranchOptions(normalizedOptions.length ? normalizedOptions : normalizeLoginBranchOptions(DEFAULT_LOGIN_BRANCHES));
+      } catch {
+        if (!alive) return;
+        setBranchOptions(normalizeLoginBranchOptions(DEFAULT_LOGIN_BRANCHES));
+      } finally {
+        if (!alive) return;
+        setLoadingBranches(false);
+      }
+    };
+
+    loadBranchOptions();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const handleSave = async () => {
     if (!user?.uid || !branchId) {
@@ -46,7 +66,7 @@ export default function BranchSelector({ user, onLogout }) {
           <div className="app-chip auth-hero-chip">Configuracion inicial</div>
           <h1 className="app-title auth-hero-title">Selecciona la sucursal que usara este modulo de inventario.</h1>
           <p className="auth-hero-copy">
-            La sucursal define el catalogo, los folios y el historial que se mostraran dentro del levantamiento.
+            La lista de sucursales se lee desde Firestore para que puedas administrarla sin tocar el codigo.
           </p>
         </section>
 
@@ -62,11 +82,16 @@ export default function BranchSelector({ user, onLogout }) {
           <div className="auth-form">
             <div>
               <label className="app-label">Sucursal</label>
-              <select value={branchId} onChange={(event) => setBranchId(event.target.value)} className="app-select">
+              <select
+                value={branchId}
+                onChange={(event) => setBranchId(event.target.value)}
+                className="app-select"
+                disabled={loadingBranches}
+              >
                 <option value="">Seleccionar sucursal</option>
-                {BRANCH_OPTIONS.map((branch) => (
-                  <option key={branch} value={branch}>
-                    {branch}
+                {branchOptions.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.label}
                   </option>
                 ))}
               </select>
@@ -74,8 +99,13 @@ export default function BranchSelector({ user, onLogout }) {
 
             {message ? <div className="auth-error">{message}</div> : null}
 
-            <button type="button" className="app-button-primary auth-submit" onClick={handleSave} disabled={!branchId || saving}>
-              {saving ? "Guardando..." : "Guardar sucursal"}
+            <button
+              type="button"
+              className="app-button-primary auth-submit"
+              onClick={handleSave}
+              disabled={!branchId || saving || loadingBranches}
+            >
+              {loadingBranches ? "Cargando sucursales..." : saving ? "Guardando..." : "Guardar sucursal"}
             </button>
 
             <button type="button" className="app-button-ghost auth-ghost" onClick={onLogout}>
