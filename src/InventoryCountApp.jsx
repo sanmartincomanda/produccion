@@ -7,6 +7,7 @@ import {
   summarizeInventorySession,
   syncSicarCatalogFromPedidos,
 } from "./inventory-api.js";
+import { downloadSicarAdjustmentExcel } from "./sicar-adjustment-export.js";
 import {
   buildEditableSessionState,
   buildInventoryReportMarkup,
@@ -143,6 +144,15 @@ const ICONS = {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M12 3v12M7 8l5-5 5 5" />
       <path d="M5 21h14" />
+    </svg>
+  ),
+  downloadSheet: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 3v10" />
+      <path d="m8 9 4 4 4-4" />
+      <path d="M5 21h14" />
+      <path d="M6 3h9l3 3v5" />
+      <path d="M15 3v3h3" />
     </svg>
   ),
   eye: (
@@ -819,13 +829,14 @@ function SalesAdjustmentsModal({ open, rows, products, disabled, onClose, onAddR
   );
 }
 
-function HistoryCard({ session, onContinue, onPrint, onUpload, uploading }) {
+function HistoryCard({ session, onContinue, onPrint, onUpload, uploading, onDownloadExcel, downloadingExcel }) {
   const [open, setOpen] = useState(false);
   const summary = summarizeInventorySession(session);
   const zoneSummaries = Array.isArray(session.zoneSummaries) ? session.zoneSummaries : [];
   const sicarIntegration = session.integrations?.sicar || null;
   const sicarStatus = normalizeSicarStatus(sicarIntegration?.status);
   const canUpload = session.status === "capturado";
+  const canDownloadExcel = session.status === "capturado";
   const uploadLocked = SICAR_LOCKED_STATUSES.has(sicarStatus);
   const requestedByLabel =
     typeof sicarIntegration?.requestedBy === "string"
@@ -946,6 +957,12 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading }) {
             {ICONS.report}
             Reporte / PDF
           </button>
+          {canDownloadExcel ? (
+            <button type="button" className="app-button-secondary" onClick={() => onDownloadExcel(session)} disabled={downloadingExcel}>
+              {ICONS.downloadSheet}
+              {downloadingExcel ? "Generando Excel..." : "Descargar ajuste SICAR Excel"}
+            </button>
+          ) : null}
           {canUpload ? (
             <button
               type="button"
@@ -1002,6 +1019,7 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
   const [savingDraft, setSavingDraft] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [uploadingSessionId, setUploadingSessionId] = useState("");
+  const [downloadingExcelSessionId, setDownloadingExcelSessionId] = useState("");
 
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [currentSessionSeq, setCurrentSessionSeq] = useState(null);
@@ -1464,6 +1482,33 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
     const reportSession = session || currentPreview;
     const title = reportSession.folio || "levantamiento-en-espera";
     printDocument(`Reporte ${title}`, buildInventoryReportMarkup(reportSession));
+  };
+
+  const handleDownloadSicarExcel = async (session) => {
+    if (!session?.id) {
+      setMessage({
+        type: "error",
+        text: "Ese levantamiento todavia no tiene un identificador guardado para generar el Excel de SICAR.",
+      });
+      return;
+    }
+
+    setDownloadingExcelSessionId(session.id);
+
+    try {
+      const result = await downloadSicarAdjustmentExcel(session);
+      setMessage({
+        type: "success",
+        text: `Excel ${result.fileName} generado con ${result.lineCount} lineas listo para subir a SICAR.`,
+      });
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: error?.message || "No fue posible generar el Excel del ajuste SICAR.",
+      });
+    } finally {
+      setDownloadingExcelSessionId("");
+    }
   };
 
   const handleUploadToSicar = async (session) => {
@@ -2151,8 +2196,10 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
                       session={session}
                       onContinue={handleContinueSession}
                       onPrint={handlePrintReport}
+                      onDownloadExcel={handleDownloadSicarExcel}
                       onUpload={handleUploadToSicar}
                       uploading={uploadingSessionId === session.id}
+                      downloadingExcel={downloadingExcelSessionId === session.id}
                     />
                   ))}
                 </div>
