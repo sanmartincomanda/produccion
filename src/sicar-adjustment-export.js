@@ -1,7 +1,7 @@
 import * as XLSX from "xlsx";
 
-const SICAR_TEMPLATE_PATH = "/templates/articulosExportados.xls";
-const DEFAULT_SHEET_NAME = "Sheet0";
+const SICAR_TEMPLATE_PATH = "/templates/inventario.xls";
+const DEFAULT_SHEET_NAME = "Hoja1";
 
 function roundQuantity(value) {
   return Math.round((Number(value || 0) + Number.EPSILON) * 10000) / 10000;
