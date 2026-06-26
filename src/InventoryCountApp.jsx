@@ -39,23 +39,23 @@ const DATE_TIME_LABEL = new Intl.DateTimeFormat("es-NI", {
 const NAV_ITEMS = [
   {
     key: "levantamiento",
-    label: "Levantamiento",
-    title: "Levantamiento por zonas",
-    subtitle: "Cuenta por zona, resta ventas pendientes y deja un total limpio para SICAR.",
+    label: "Conteo",
+    title: "Inventario",
+    subtitle: "",
     color: "#f59e0b",
   },
   {
     key: "catalogo",
-    label: "Catalogo SICAR",
-    title: "Catalogo central",
-    subtitle: "Sincroniza el maestro de productos y valida que la sucursal trabaje con la ultima base.",
+    label: "Catalogo",
+    title: "Catalogo",
+    subtitle: "",
     color: "#fb923c",
   },
   {
     key: "historial",
     label: "Historial",
-    title: "Sesiones guardadas",
-    subtitle: "Continua borradores en espera, imprime reportes y sube levantamientos finalizados a SICAR.",
+    title: "Historial",
+    subtitle: "",
     color: "#f97316",
   },
 ];
@@ -373,7 +373,7 @@ function SkuSearchField({ products, selectedSku, onSelect }) {
 
   return (
     <div className="inventory-search">
-      <label className="app-label">Producto SICAR</label>
+      <label className="app-label">Producto</label>
       <div className="inventory-search-input-wrap">
         <span className="inventory-search-icon">{ICONS.search}</span>
         <input
@@ -395,7 +395,7 @@ function SkuSearchField({ products, selectedSku, onSelect }) {
               handleSelect(filteredProducts[0]);
             }
           }}
-          placeholder="Buscar por clave o descripcion"
+          placeholder="Clave o nombre"
           className="app-input inventory-search-input"
           autoComplete="off"
           autoCorrect="off"
@@ -409,7 +409,7 @@ function SkuSearchField({ products, selectedSku, onSelect }) {
           <span className="inventory-selected-name">{selectedProduct.nombre}</span>
         </div>
       ) : (
-        <div className="inventory-helper-text">Elige un producto antes de capturar cajas o pesos.</div>
+        <div className="inventory-helper-text">Sin producto</div>
       )}
 
       {open && filteredProducts.length > 0 ? (
@@ -454,7 +454,7 @@ function BarcodeCapturePanel({ disabled, onAddWeight }) {
     }
 
     onAddWeight(numericWeight);
-    setMessage({ type: "success", text: successMessage || `Caja agregada: ${formatMetric(numericWeight)} LB` });
+    setMessage({ type: "success", text: successMessage || `${formatMetric(numericWeight)} LB` });
     setSmCode("");
     setScaleCode("");
     setManualWeight("");
@@ -466,7 +466,7 @@ function BarcodeCapturePanel({ disabled, onAddWeight }) {
       setMessage({ type: "error", text: result.error });
       return;
     }
-    addWeight(result.weight, `Codigo SM agregado: ${formatMetric(result.weight)} LB`);
+    addWeight(result.weight, `SM: ${formatMetric(result.weight)} LB`);
   };
 
   const readScaleCode = () => {
@@ -475,14 +475,14 @@ function BarcodeCapturePanel({ disabled, onAddWeight }) {
       setMessage({ type: "error", text: result.error });
       return;
     }
-    addWeight(result.weight, `Codigo bascula agregado: ${formatMetric(result.weight)} LB`);
+    addWeight(result.weight, `Bascula: ${formatMetric(result.weight)} LB`);
   };
 
   return (
     <div className="inventory-scan-panel app-card-soft">
       <div className="inventory-scan-grid">
         <div>
-          <label className="app-label">San Martin (54 / 52)</label>
+          <label className="app-label">SM</label>
           <div className="inventory-inline-action">
             <input
               type="text"
@@ -495,7 +495,7 @@ function BarcodeCapturePanel({ disabled, onAddWeight }) {
                 }
               }}
               className="app-input"
-              placeholder="Escanear codigo SM"
+              placeholder="Codigo SM"
               disabled={disabled}
             />
             <button
@@ -510,7 +510,7 @@ function BarcodeCapturePanel({ disabled, onAddWeight }) {
         </div>
 
         <div>
-          <label className="app-label">Bascula (13)</label>
+          <label className="app-label">Bascula</label>
           <div className="inventory-inline-action">
             <input
               type="text"
@@ -523,7 +523,7 @@ function BarcodeCapturePanel({ disabled, onAddWeight }) {
                 }
               }}
               className="app-input"
-              placeholder="Escanear codigo bascula"
+              placeholder="Codigo bascula"
               disabled={disabled}
             />
             <button
@@ -538,7 +538,7 @@ function BarcodeCapturePanel({ disabled, onAddWeight }) {
         </div>
 
         <div>
-          <label className="app-label">Peso manual</label>
+          <label className="app-label">Manual</label>
           <div className="inventory-inline-action">
             <input
               type="number"
@@ -597,9 +597,9 @@ function CountedRowCard({
     <article className="app-card inventory-row-card">
       <div className="inventory-row-header">
         <div>
-          <div className="inventory-row-title">Producto {String(index + 1).padStart(2, "0")}</div>
+          <div className="inventory-row-title">Item {String(index + 1).padStart(2, "0")}</div>
           <div className="inventory-row-subtitle">
-            {selectedProduct ? selectedProduct.nombre : "Selecciona el producto del catalogo antes de capturar."}
+            {selectedProduct ? selectedProduct.nombre : "Sin producto"}
           </div>
         </div>
 
@@ -618,7 +618,7 @@ function CountedRowCard({
         <div className="inventory-row-summary app-card-soft">
           <div className="inventory-summary-mini">
             <span className="inventory-summary-mini-label">Clave</span>
-            <strong>{selectedProduct?.sku || "Pendiente"}</strong>
+            <strong>{selectedProduct?.sku || "-"}</strong>
           </div>
           <div className="inventory-summary-mini">
             <span className="inventory-summary-mini-label">Total</span>
@@ -634,7 +634,7 @@ function CountedRowCard({
       <div className="inventory-weights-wrap">
         <div className="inventory-weight-list">
           {row.pesos.length === 0 ? (
-            <div className="inventory-empty-card">Aun no hay cajas registradas para este producto.</div>
+            <div className="inventory-empty-card">Sin lecturas</div>
           ) : (
             row.pesos.map((weight, weightIndex) => (
               <button
@@ -654,7 +654,7 @@ function CountedRowCard({
         <div className="inventory-row-actions">
           <button type="button" className="app-button-ghost" onClick={onAddRowBelow} disabled={disabled}>
             {ICONS.plus}
-            Agregar producto debajo
+            Agregar fila
           </button>
           <button
             type="button"
@@ -662,7 +662,7 @@ function CountedRowCard({
             onClick={onClearWeights}
             disabled={disabled || row.pesos.length === 0}
           >
-            Limpiar lecturas
+            Limpiar
           </button>
         </div>
       </div>
@@ -682,11 +682,11 @@ function SalesAdjustmentRow({ row, index, products, disabled, onSelectProduct, o
     <article className="app-card inventory-sale-row-card">
       <div className="inventory-row-header">
         <div>
-          <div className="inventory-row-title">Venta pendiente {String(index + 1).padStart(2, "0")}</div>
+          <div className="inventory-row-title">Venta {String(index + 1).padStart(2, "0")}</div>
           <div className="inventory-row-subtitle">
             {selectedProduct
-              ? "Este producto se descontara del total consolidado al finalizar."
-              : "Selecciona el producto vendido para restarlo del conteo final."}
+              ? "Se descuenta al cerrar"
+              : "Sin producto"}
           </div>
         </div>
         <button type="button" className="app-icon-button" onClick={onRemove} disabled={disabled}>
@@ -698,7 +698,7 @@ function SalesAdjustmentRow({ row, index, products, disabled, onSelectProduct, o
         <SkuSearchField products={products} selectedSku={row.sku} onSelect={onSelectProduct} />
 
         <div>
-          <label className="app-label">Cajas vendidas</label>
+          <label className="app-label">Cajas</label>
           <input
             type="number"
             min="0"
@@ -712,7 +712,7 @@ function SalesAdjustmentRow({ row, index, products, disabled, onSelectProduct, o
         </div>
 
         <div>
-          <label className="app-label">Total vendido en LB</label>
+          <label className="app-label">LB</label>
           <input
             type="number"
             min="0"
@@ -761,11 +761,8 @@ function SalesAdjustmentsModal({ open, rows, products, disabled, onClose, onAddR
       <div className="inventory-modal app-panel" onClick={(event) => event.stopPropagation()}>
         <div className="inventory-modal-header">
           <div>
-            <div className="app-chip">{ICONS.sales} Restar ventas</div>
-            <h2 className="app-title inventory-section-title inventory-modal-title">Ventas ocurridas durante el levantamiento</h2>
-            <p className="inventory-header-subtitle inventory-modal-copy">
-              Guarda aqui los productos vendidos mientras se esta contando. El sistema los descuenta al consolidar el total para SICAR.
-            </p>
+            <div className="app-chip">{ICONS.sales} Ventas</div>
+            <h2 className="app-title inventory-section-title inventory-modal-title">Restar ventas</h2>
           </div>
           <button type="button" className="app-icon-button" onClick={onClose}>
             {ICONS.trash}
@@ -789,7 +786,7 @@ function SalesAdjustmentsModal({ open, rows, products, disabled, onClose, onAddR
 
         <div className="inventory-modal-body app-scroll-y">
           {rows.length === 0 ? (
-            <div className="inventory-empty-card">No hay ventas registradas todavia. Agrega una linea para empezar.</div>
+            <div className="inventory-empty-card">Sin ventas</div>
           ) : (
             <div className="inventory-sales-list">
               {rows.map((row, index) => (
@@ -817,11 +814,11 @@ function SalesAdjustmentsModal({ open, rows, products, disabled, onClose, onAddR
         <div className="inventory-modal-footer">
           <button type="button" className="app-button-secondary" onClick={onAddRow} disabled={disabled}>
             {ICONS.plus}
-            Agregar venta
+            Agregar
           </button>
           <button type="button" className="app-button-primary" onClick={onClose}>
             {ICONS.check}
-            Guardar y cerrar
+            Listo
           </button>
         </div>
       </div>
@@ -862,9 +859,9 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading, onDown
     <article className="app-card inventory-history-card">
       <div className="inventory-history-top">
         <div>
-          <div className="inventory-history-folio">{session.folio || "Borrador en espera"}</div>
+          <div className="inventory-history-folio">{session.folio || "Borrador"}</div>
           <div className="inventory-history-date">
-            {formatDate(session.fecha)} / Actualizado {formatDateTime(session.updatedAt || session.timestamp)}
+            {formatDate(session.fecha)} / {formatDateTime(session.updatedAt || session.timestamp)}
           </div>
         </div>
 
@@ -878,13 +875,13 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading, onDown
 
       <div className="inventory-history-meta">
         <div>
-          <strong>Proveedor:</strong> {session.proveedor || "Sin proveedor"}
+          <strong>Prov.:</strong> {session.proveedor || "-"}
         </div>
         <div>
-          <strong>Realizado por:</strong> {session.realizadoPor || "Pendiente"}
+          <strong>Realizo:</strong> {session.realizadoPor || "-"}
         </div>
         <div>
-          <strong>Supervisado por:</strong> {session.supervisadoPor || "Pendiente"}
+          <strong>Superviso:</strong> {session.supervisadoPor || "-"}
         </div>
       </div>
 
@@ -912,21 +909,21 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading, onDown
       sicarIntegration?.processedAt ? (
         <div className="inventory-history-note">
           <div>
-            <strong>Estado SICAR:</strong> {getSicarStatusMessage(sicarIntegration) || getSicarStatusLabel(sicarStatus)}
+            <strong>SICAR:</strong> {getSicarStatusMessage(sicarIntegration) || getSicarStatusLabel(sicarStatus)}
           </div>
           {sicarIntegration?.ainId ? (
             <div>
-              <strong>Ajuste SICAR:</strong> {sicarIntegration.ainId}
+              <strong>Ajuste:</strong> {sicarIntegration.ainId}
             </div>
           ) : null}
           {sicarIntegration?.jobId ? (
             <div>
-              <strong>Job integrador:</strong> {sicarIntegration.jobId}
+              <strong>Job:</strong> {sicarIntegration.jobId}
             </div>
           ) : null}
           {sicarIntegration?.requestedAt ? (
             <div>
-              <strong>Solicitado:</strong> {formatDateTime(sicarIntegration.requestedAt)}
+              <strong>Pedido:</strong> {formatDateTime(sicarIntegration.requestedAt)}
               {requestedByLabel ? ` / ${requestedByLabel}` : ""}
             </div>
           ) : null}
@@ -941,7 +938,7 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading, onDown
       {summary.warnings.length > 0 ? (
         <div className="inventory-inline-message inventory-inline-message-error inventory-history-warning">
           {ICONS.warning}
-          Hay productos con ventas mayores al conteo bruto. Revisa el reporte antes de consolidar.
+          Hay ventas mayores al conteo.
         </div>
       ) : null}
 
@@ -950,17 +947,17 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading, onDown
           {session.status === "en_espera" ? (
             <button type="button" className="app-button-secondary" onClick={() => onContinue(session)}>
               {ICONS.play}
-              Continuar levantamiento
+              Continuar
             </button>
           ) : null}
           <button type="button" className="app-button-ghost" onClick={() => onPrint(session)}>
             {ICONS.report}
-            Reporte / PDF
+            PDF
           </button>
           {canDownloadExcel ? (
             <button type="button" className="app-button-secondary" onClick={() => onDownloadExcel(session)} disabled={downloadingExcel}>
               {ICONS.downloadSheet}
-              {downloadingExcel ? "Generando Excel..." : "Descargar ajuste SICAR Excel"}
+              {downloadingExcel ? "Generando..." : "Excel SICAR"}
             </button>
           ) : null}
           {canUpload ? (
@@ -978,7 +975,7 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading, onDown
 
         <button type="button" className="app-button-ghost inventory-small-button" onClick={() => setOpen((value) => !value)}>
           {ICONS.eye}
-          {open ? "Ocultar detalle" : "Ver detalle"}
+          {open ? "Ocultar" : "Detalle"}
         </button>
       </div>
 
@@ -986,7 +983,7 @@ function HistoryCard({ session, onContinue, onPrint, onUpload, uploading, onDown
         <div className="inventory-history-detail">
           <div className="inventory-zone-mini-list">
             {zoneSummaries.length === 0 ? (
-              <div className="inventory-empty-card">No hay zonas registradas en esta sesion.</div>
+              <div className="inventory-empty-card">Sin zonas</div>
             ) : (
               zoneSummaries.map((zone) => (
                 <div key={zone.id} className="app-card-soft inventory-zone-mini-card">
@@ -1278,7 +1275,7 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
     setView("levantamiento");
     setMessage({
       type: "info",
-      text: "Se preparo un levantamiento nuevo para capturar inventario por zonas.",
+      text: "Levantamiento nuevo listo.",
     });
   };
 
@@ -1313,7 +1310,7 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
     loadSessionIntoEditor(session);
     setMessage({
       type: "info",
-      text: `Se cargo ${session.folio || "el borrador"} para continuar el levantamiento.`,
+      text: `${session.folio || "Borrador"} cargado.`,
     });
   };
 
@@ -1386,7 +1383,7 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
       }));
       setMessage({
         type: "success",
-        text: `Catalogo SICAR actualizado. ${result.count} productos listos para el levantamiento.`,
+        text: `Catalogo actualizado: ${result.count} productos.`,
       });
     } catch (error) {
       setMessage({
@@ -1427,7 +1424,7 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
       setCurrentFolio(result.folio || "");
       setMessage({
         type: "success",
-        text: `Levantamiento ${result.folio || "en espera"} guardado para continuar despues.`,
+        text: `${result.folio || "Borrador"} guardado.`,
       });
       setView("historial");
     } catch (error) {
@@ -1466,7 +1463,7 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
       setView("historial");
       setMessage({
         type: "success",
-        text: `Levantamiento ${result.folio} finalizado y guardado en historial.`,
+        text: `${result.folio} finalizado.`,
       });
     } catch (error) {
       setMessage({
@@ -1572,11 +1569,8 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
     return (
       <div className="app-shell">
         <section className="app-panel inventory-loading">
-          <div className="app-chip">{ICONS.sync} Preparando modulo</div>
-          <h1 className="app-title">Cargando el levantamiento por zonas</h1>
-          <p className="app-muted">
-            Estamos leyendo la sucursal, el catalogo SICAR y el historial reciente para abrir la nueva experiencia de inventario.
-          </p>
+          <div className="app-chip">{ICONS.sync} Cargando</div>
+          <h1 className="app-title">Abriendo inventario</h1>
         </section>
       </div>
     );
@@ -1597,9 +1591,9 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
           <div className="inventory-branding">
             <div className="inventory-brand-icon">{ICONS.app}</div>
             <div>
-              <div className="app-chip inventory-header-chip">{ICONS.spark} ERP San Martin / Inventario</div>
+              <div className="app-chip inventory-header-chip">{ICONS.spark} Inventario</div>
               <h1 className="app-title inventory-header-title">{activeNav.title}</h1>
-              <p className="inventory-header-subtitle">{activeNav.subtitle}</p>
+              {activeNav.subtitle ? <p className="inventory-header-subtitle">{activeNav.subtitle}</p> : null}
             </div>
           </div>
 
@@ -1630,10 +1624,10 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
         </div>
 
         <div className="inventory-metrics">
-          <MetricCard label="Zonas activas" value={inventorySnapshot.totals.zoneCount} helper="Divide el levantamiento por areas" accent="#f59e0b" />
-          <MetricCard label="Conteo bruto" value={`${formatMetric(inventorySnapshot.totals.grossWeight)} LB`} helper={`${inventorySnapshot.totals.grossBoxes} cajas contadas`} accent="#fb923c" />
-          <MetricCard label="Ventas a restar" value={`${formatMetric(inventorySnapshot.totals.salesWeight)} LB`} helper={`${inventorySnapshot.totals.salesBoxes} cajas en ajuste`} accent="#f97316" />
-          <MetricCard label="Total SICAR" value={`${formatMetric(inventorySnapshot.totals.netWeight)} LB`} helper={formatDate(fecha)} accent="#fdba74" />
+          <MetricCard label="Zonas" value={inventorySnapshot.totals.zoneCount} accent="#f59e0b" />
+          <MetricCard label="Bruto" value={`${formatMetric(inventorySnapshot.totals.grossWeight)} LB`} accent="#fb923c" />
+          <MetricCard label="Ventas" value={`${formatMetric(inventorySnapshot.totals.salesWeight)} LB`} accent="#f97316" />
+          <MetricCard label="SICAR" value={`${formatMetric(inventorySnapshot.totals.netWeight)} LB`} accent="#fdba74" />
         </div>
       </header>
 
@@ -1672,10 +1666,8 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
             <section className="app-panel inventory-section">
               <div className="inventory-section-head">
                 <div>
-                  <div className="app-chip">Datos base</div>
-                  <h2 className="app-title inventory-section-title">Encabezado del levantamiento</h2>
+                  <h2 className="app-title inventory-section-title">Encabezado</h2>
                 </div>
-                <div className="inventory-section-meta">Solo levantamiento de inventario, organizado para capturar y retomar despues.</div>
               </div>
 
               <div className="inventory-grid inventory-grid-three">
@@ -1706,7 +1698,7 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
 
                 <div className="inventory-status-card app-card-soft">
                   <div className="inventory-status-top">
-                    <span className="app-chip">Catalogo SICAR</span>
+                    <span className="app-chip">SICAR</span>
                     <button
                       type="button"
                       className="app-button-secondary inventory-small-button"
@@ -1718,9 +1710,7 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
                     </button>
                   </div>
                   <div className="inventory-status-text">
-                    {catalogMeta?.sicarSyncAt
-                      ? `Ultima sync: ${formatDateTime(catalogMeta.sicarSyncAt)}`
-                      : "Sin sincronizacion registrada en esta base."}
+                    {catalogMeta?.sicarSyncAt ? `Sync ${formatDateTime(catalogMeta.sicarSyncAt)}` : "Sin sync"}
                   </div>
                 </div>
               </div>
@@ -1785,7 +1775,7 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
                   value={observaciones}
                   onChange={(event) => setObservaciones(event.target.value)}
                   className="app-textarea"
-                  placeholder="Notas generales, incidencias, turno, comentarios por area o aclaraciones del conteo."
+                  placeholder="Notas"
                 />
               </div>
 
@@ -1800,15 +1790,15 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
                 </button>
                 <button type="button" className="app-button-secondary" onClick={() => handlePrintReport()}>
                   {ICONS.report}
-                  Vista previa / PDF
+                  PDF
                 </button>
                 <button type="button" className="app-button-secondary" onClick={handleSaveDraft} disabled={busy}>
                   {ICONS.pause}
-                  {savingDraft ? "Guardando..." : "Guardar en espera"}
+                  {savingDraft ? "Guardando..." : "Guardar"}
                 </button>
                 <button type="button" className="app-button-primary" onClick={handleFinalize} disabled={busy}>
                   {ICONS.check}
-                  {finalizing ? "Finalizando..." : "Finalizar levantamiento"}
+                  {finalizing ? "Finalizando..." : "Finalizar"}
                 </button>
               </div>
             </section>
@@ -1816,22 +1806,18 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
             <section className="app-panel inventory-section">
               <div className="inventory-section-head">
                 <div>
-                  <div className="app-chip">Flujo operativo</div>
-                  <h2 className="app-title inventory-section-title">Conteo por zonas</h2>
+                  <h2 className="app-title inventory-section-title">Zonas</h2>
                 </div>
                 <button type="button" className="app-button-primary inventory-add-line" onClick={handleAddZone} disabled={busy}>
                   {ICONS.plus}
-                  Agregar zona
+                  Zona
                 </button>
               </div>
 
               <div className="inventory-workspace">
                 <aside className="inventory-zone-rail">
                   <div className="inventory-zone-rail-header">
-                    <div>
-                      <div className="app-chip">{ICONS.zone} Zonas</div>
-                      <p className="inventory-helper-text">Divide el recorrido del levantamiento y luego consolida todo al final.</p>
-                    </div>
+                    <div className="app-chip">{ICONS.zone} Zonas</div>
                   </div>
 
                   <div className="inventory-zone-list">
@@ -1864,7 +1850,6 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
                     <>
                       <div className="inventory-zone-stage-header">
                         <div className="inventory-zone-stage-title">
-                          <div className="app-chip">{ICONS.zone} Zona activa</div>
                           <h3 className="app-title inventory-zone-stage-heading">{activeZone.name}</h3>
                         </div>
                         <div className="inventory-zone-stage-actions">
@@ -1910,9 +1895,7 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
                       </div>
 
                       {catalog.length === 0 ? (
-                        <div className="inventory-empty-card">
-                          No hay catalogo disponible todavia. Sincroniza el catalogo SICAR para comenzar a capturar.
-                        </div>
+                        <div className="inventory-empty-card">Sin catalogo</div>
                       ) : (
                         <div className="inventory-row-list">
                           {activeZone.rows.map((row, index) => (
@@ -1990,12 +1973,12 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
                           disabled={busy}
                         >
                           {ICONS.plus}
-                          Agregar producto a esta zona
+                          Agregar item
                         </button>
                       </div>
                     </>
                   ) : (
-                    <div className="inventory-empty-card">Agrega una zona para comenzar a capturar el inventario.</div>
+                    <div className="inventory-empty-card">Agrega una zona</div>
                   )}
                 </div>
               </div>
@@ -2004,15 +1987,14 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
             <section className="app-panel inventory-section">
               <div className="inventory-section-head">
                 <div>
-                  <div className="app-chip">Consolidado final</div>
-                  <h2 className="app-title inventory-section-title">Total listo para SICAR</h2>
+                  <h2 className="app-title inventory-section-title">Consolidado</h2>
                 </div>
               </div>
 
               {inventorySnapshot.warnings.length > 0 ? (
                 <div className="inventory-inline-message inventory-inline-message-error inventory-warning-banner">
                   {ICONS.warning}
-                  Hay productos donde las ventas superan el conteo bruto. Ajusta esas lineas antes de finalizar.
+                  Hay ventas mayores al conteo.
                 </div>
               ) : null}
 
@@ -2038,7 +2020,7 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
               <div className="inventory-consolidated-grid">
                 <div className="app-card-soft inventory-consolidated-card">
                   <div className="inventory-consolidated-head">
-                    <strong>Totalizado por zona</strong>
+                    <strong>Por zona</strong>
                     <span className="app-chip">{inventorySnapshot.zoneSummaries.length} zonas</span>
                   </div>
                   <div className="inventory-zone-mini-list">
@@ -2055,12 +2037,12 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
 
                 <div className="app-card-soft inventory-consolidated-card">
                   <div className="inventory-consolidated-head">
-                    <strong>Productos a subir a SICAR</strong>
+                    <strong>Total SICAR</strong>
                     <span className="app-chip">{currentPreview.itemCount} productos</span>
                   </div>
                   <div className="inventory-consolidated-list app-scroll-y">
                     {currentPreview.items.length === 0 ? (
-                      <div className="inventory-empty-card">Aun no hay productos consolidados para subir.</div>
+                      <div className="inventory-empty-card">Sin productos</div>
                     ) : (
                       currentPreview.items.map((item) => (
                         <div key={item.sku} className="inventory-catalog-item app-card-soft">
@@ -2083,12 +2065,11 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
             <section className="app-panel inventory-section">
               <div className="inventory-section-head">
                 <div>
-                  <div className="app-chip">Fuente de verdad</div>
-                  <h2 className="app-title inventory-section-title">Catalogo SICAR conectado</h2>
+                  <h2 className="app-title inventory-section-title">Catalogo</h2>
                 </div>
                 <button type="button" className="app-button-primary" onClick={handleSyncCatalog} disabled={syncingCatalog}>
                   {ICONS.sync}
-                  {syncingCatalog ? "Sincronizando..." : "Sincronizar ahora"}
+                  {syncingCatalog ? "Sync..." : "Sincronizar"}
                 </button>
               </div>
 
@@ -2121,21 +2102,19 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
                       value={catalogQuery}
                       onChange={(event) => setCatalogQuery(event.target.value)}
                       className="app-input"
-                      placeholder="Filtrar por clave o descripcion"
+                      placeholder="Clave o nombre"
                     />
                   </div>
                 </div>
 
                 <div className="inventory-status-card app-card-soft">
-                  <div className="inventory-status-text">
-                    Esta vista toma el catalogo maestro desde SICAR y lo deja listo para usarlo en el levantamiento por zonas.
-                  </div>
+                  <div className="inventory-status-text">{catalogMeta?.source || "SICAR"}</div>
                 </div>
               </div>
 
               <div className="inventory-catalog-list app-scroll-y">
                 {filteredCatalog.length === 0 ? (
-                  <div className="inventory-empty-card">No hay productos que coincidan con la busqueda.</div>
+                  <div className="inventory-empty-card">Sin resultados</div>
                 ) : (
                   filteredCatalog.map((product) => (
                     <div key={product.sku} className="inventory-catalog-item app-card-soft">
@@ -2154,10 +2133,9 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
             <section className="app-panel inventory-section">
               <div className="inventory-section-head">
                 <div>
-                  <div className="app-chip">Seguimiento</div>
-                  <h2 className="app-title inventory-section-title">Sesiones guardadas</h2>
+                  <h2 className="app-title inventory-section-title">Historial</h2>
                 </div>
-                <div className="inventory-section-meta">{sessions.length} levantamientos visibles</div>
+                <div className="inventory-section-meta">{sessions.length}</div>
               </div>
 
               <div className="inventory-toolbar inventory-toolbar-tight">
@@ -2185,9 +2163,7 @@ export default function InventoryCountApp({ user, branchId, onLogout }) {
               </div>
 
               {filteredSessions.length === 0 ? (
-                <div className="inventory-empty-card">
-                  No hay levantamientos para este filtro. Crea uno nuevo o cambia la vista de historial.
-                </div>
+                <div className="inventory-empty-card">Sin registros</div>
               ) : (
                 <div className="inventory-history-list">
                   {filteredSessions.map((session) => (

@@ -32,17 +32,14 @@ function AuthScreen({ email, password, onEmailChange, onPasswordChange, onSubmit
               "linear-gradient(135deg, rgba(233,136,40,0.98) 0%, rgba(247,167,88,0.96) 52%, rgba(255,247,239,0.95) 100%)",
           }}
         >
-          <div className="app-chip auth-hero-chip">Inventario alto nivel</div>
-          <h1 className="app-title auth-hero-title">Levantamiento de inventario con look moderno, claro y listo para crecer a ERP.</h1>
-          <p className="auth-hero-copy">
-            Esta app ahora se enfoca en una sola operacion: capturar inventario con catalogo SICAR, codigos de barra y responsables claros.
-          </p>
+          <div className="app-chip auth-hero-chip">Inventario</div>
+          <h1 className="app-title auth-hero-title">Levantamiento directo y rapido.</h1>
 
           <div className="auth-highlight-grid">
-            <div className="auth-highlight-card">Catalogo SICAR centralizado desde Firebase.</div>
-            <div className="auth-highlight-card">Captura ordenada por producto, caja y peso.</div>
-            <div className="auth-highlight-card">Firmas por nombre y flujo directo para inventario.</div>
-            <div className="auth-highlight-card">Base visual alineada con tu app-pedidos-internos.</div>
+            <div className="auth-highlight-card">Catalogo SICAR</div>
+            <div className="auth-highlight-card">Conteo por zonas</div>
+            <div className="auth-highlight-card">Ventas y ajuste</div>
+            <div className="auth-highlight-card">Historial listo</div>
           </div>
         </section>
 
@@ -51,7 +48,7 @@ function AuthScreen({ email, password, onEmailChange, onPasswordChange, onSubmit
             <div className="auth-logo">SM</div>
             <div>
               <div className="app-title auth-card-title">Inventario San Martin</div>
-              <div className="auth-card-subtitle">Ingresa para abrir el modulo de levantamiento.</div>
+              <div className="auth-card-subtitle">Acceso</div>
             </div>
           </div>
 
@@ -97,10 +94,7 @@ function LoadingScreen() {
     <div className="auth-shell">
       <section className="app-panel loading-card">
         <div className="app-chip">Preparando sesion</div>
-        <h1 className="app-title">Cargando autenticacion y sucursal</h1>
-        <p className="app-muted">
-          Estamos verificando tu acceso para abrir el nuevo modulo de levantamiento de inventario.
-        </p>
+        <h1 className="app-title">Cargando</h1>
       </section>
     </div>
   );

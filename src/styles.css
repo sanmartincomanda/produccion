@@ -1,24 +1,24 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
 
 :root {
-  --background: #f8efe6;
-  --foreground: #4b2f1d;
-  --surface: rgba(255, 255, 255, 0.96);
-  --surface-strong: rgba(255, 255, 255, 0.99);
-  --surface-soft: rgba(255, 246, 239, 0.96);
-  --stroke: rgba(188, 146, 111, 0.24);
-  --stroke-strong: rgba(221, 138, 62, 0.34);
-  --text-main: #4b2f1d;
-  --text-soft: #8a6a56;
-  --text-faint: #b08d75;
+  --background: #f6f2ed;
+  --foreground: #33261d;
+  --surface: rgba(255, 255, 255, 0.98);
+  --surface-strong: #ffffff;
+  --surface-soft: #fbf8f4;
+  --stroke: rgba(120, 91, 67, 0.12);
+  --stroke-strong: rgba(221, 138, 62, 0.22);
+  --text-main: #33261d;
+  --text-soft: #7c695b;
+  --text-faint: #a89282;
   --brand: #ee8d2d;
   --brand-strong: #d86f14;
   --accent: #ffc17a;
   --success: #2d9f6f;
   --danger: #dc5b4b;
   --warning: #d8951b;
-  --shadow-panel: 0 14px 36px rgba(60, 90, 122, 0.1);
-  --shadow-soft: 0 8px 24px rgba(60, 90, 122, 0.08);
+  --shadow-panel: 0 8px 22px rgba(33, 24, 18, 0.06);
+  --shadow-soft: 0 4px 14px rgba(33, 24, 18, 0.05);
 }
 
 * {
@@ -36,9 +36,7 @@ body {
   margin: 0;
   color: var(--text-main);
   font-family: "Manrope", "Segoe UI", sans-serif;
-  background:
-    linear-gradient(180deg, rgba(238, 141, 45, 0.09) 0%, rgba(255, 193, 122, 0.06) 16%, transparent 28%),
-    linear-gradient(180deg, #f8efe6 0%, #fff8f1 48%, #f8efe6 100%);
+  background: linear-gradient(180deg, #f6f2ed 0%, #fbf8f4 100%);
 }
 
 body::before,
@@ -57,13 +55,13 @@ body::after {
 body::before {
   top: 0;
   right: -120px;
-  background: rgba(238, 141, 45, 0.12);
+  background: rgba(238, 141, 45, 0.08);
 }
 
 body::after {
   bottom: -140px;
   left: -100px;
-  background: rgba(255, 193, 122, 0.16);
+  background: rgba(255, 193, 122, 0.08);
 }
 
 a {
@@ -94,47 +92,46 @@ textarea::placeholder {
 }
 
 .app-shell {
-  width: min(100%, 1280px);
+  width: min(100%, 1380px);
   margin: 0 auto;
-  padding: 18px clamp(14px, 3vw, 28px) 28px;
+  padding: 14px clamp(12px, 2vw, 24px) 22px;
 }
 
 .app-panel {
   position: relative;
   overflow: hidden;
-  border-radius: 30px;
+  border-radius: 20px;
   border: 1px solid var(--stroke);
   background: var(--surface);
   box-shadow: var(--shadow-panel);
-  backdrop-filter: blur(16px);
 }
 
 .app-card {
-  border-radius: 24px;
+  border-radius: 16px;
   border: 1px solid var(--stroke);
-  background: rgba(255, 255, 255, 0.98);
+  background: #ffffff;
   box-shadow: var(--shadow-soft);
 }
 
 .app-card-soft {
-  border-radius: 22px;
-  border: 1px solid rgba(201, 162, 127, 0.18);
-  background: linear-gradient(180deg, rgba(255, 250, 245, 0.92) 0%, rgba(255, 243, 231, 0.98) 100%);
-  box-shadow: 0 10px 24px rgba(60, 90, 122, 0.06);
+  border-radius: 14px;
+  border: 1px solid rgba(201, 162, 127, 0.14);
+  background: var(--surface-soft);
+  box-shadow: none;
 }
 
 .app-title {
   margin: 0;
-  font-family: "Space Grotesk", "Manrope", sans-serif;
-  letter-spacing: -0.03em;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  letter-spacing: -0.02em;
 }
 
 .app-label {
   display: block;
-  margin-bottom: 8px;
-  font-size: 0.72rem;
+  margin-bottom: 6px;
+  font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-soft);
 }
@@ -144,7 +141,7 @@ textarea::placeholder {
 .app-textarea {
   width: 100%;
   border: 1px solid var(--stroke-strong);
-  border-radius: 18px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.98);
   color: var(--text-main);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
@@ -153,13 +150,13 @@ textarea::placeholder {
 
 .app-input,
 .app-select {
-  min-height: 54px;
-  padding: 14px 16px;
+  min-height: 48px;
+  padding: 12px 14px;
 }
 
 .app-textarea {
-  min-height: 132px;
-  padding: 16px;
+  min-height: 110px;
+  padding: 14px;
   resize: vertical;
 }
 
@@ -206,8 +203,8 @@ textarea::placeholder {
 }
 
 .app-button-primary {
-  min-height: 54px;
-  padding: 14px 18px;
+  min-height: 46px;
+  padding: 12px 16px;
   border: none;
   color: #ffffff;
   background: linear-gradient(135deg, #f6a34d 0%, #ee8d2d 100%);
@@ -215,8 +212,8 @@ textarea::placeholder {
 }
 
 .app-button-secondary {
-  min-height: 52px;
-  padding: 14px 18px;
+  min-height: 44px;
+  padding: 11px 15px;
   border: 1px solid rgba(238, 141, 45, 0.24);
   color: var(--brand-strong);
   background: rgba(255, 243, 231, 0.98);
@@ -224,8 +221,8 @@ textarea::placeholder {
 }
 
 .app-button-ghost {
-  min-height: 48px;
-  padding: 12px 16px;
+  min-height: 42px;
+  padding: 10px 14px;
   border: 1px solid rgba(148, 163, 184, 0.22);
   color: var(--text-main);
   background: rgba(255, 255, 255, 0.94);
@@ -233,9 +230,9 @@ textarea::placeholder {
 }
 
 .app-icon-button {
-  width: 42px;
-  height: 42px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
   background: rgba(255, 255, 255, 0.98);
   color: var(--text-main);
   box-shadow: var(--shadow-soft);
@@ -255,12 +252,12 @@ textarea::placeholder {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid rgba(212, 170, 128, 0.18);
   background: rgba(255, 249, 243, 0.98);
   color: var(--text-main);
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 700;
 }
 
@@ -409,32 +406,32 @@ textarea::placeholder {
 }
 
 .inventory-main {
-  margin-top: 20px;
+  margin-top: 14px;
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .inventory-header {
-  padding: 22px;
+  padding: 18px;
 }
 
 .inventory-header-glow {
   position: absolute;
   inset: 0;
-  opacity: 0.4;
+  opacity: 0.16;
 }
 
 .inventory-header-top {
   position: relative;
   display: flex;
-  gap: 24px;
+  gap: 16px;
   justify-content: space-between;
   align-items: flex-start;
 }
 
 .inventory-branding {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   align-items: flex-start;
 }
 
@@ -442,13 +439,13 @@ textarea::placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 64px;
-  width: 64px;
-  height: 64px;
-  border-radius: 22px;
+  min-width: 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.14);
   color: #ffffff;
-  box-shadow: 0 16px 34px rgba(107, 57, 15, 0.2);
+  box-shadow: none;
 }
 
 .inventory-header-chip {
@@ -458,38 +455,39 @@ textarea::placeholder {
 }
 
 .inventory-header-title {
-  margin-top: 12px;
-  font-size: clamp(2rem, 4vw, 3.2rem);
+  margin-top: 8px;
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
   color: #ffffff;
 }
 
 .inventory-header-subtitle {
   max-width: 720px;
-  margin-top: 10px;
+  margin-top: 6px;
   color: rgba(255, 249, 242, 0.92);
-  line-height: 1.7;
+  line-height: 1.5;
+  font-size: 0.92rem;
 }
 
 .inventory-session-boxes {
   position: relative;
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: stretch;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
 .inventory-session-card {
-  min-width: 180px;
-  padding: 14px 16px;
-  border-radius: 22px;
+  min-width: 150px;
+  padding: 10px 12px;
+  border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.24);
   background: rgba(255, 255, 255, 0.14);
   color: #ffffff;
 }
 
 .inventory-session-label {
-  font-size: 0.72rem;
+  font-size: 0.64rem;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -497,8 +495,8 @@ textarea::placeholder {
 }
 
 .inventory-session-value {
-  margin-top: 6px;
-  font-size: 1rem;
+  margin-top: 4px;
+  font-size: 0.92rem;
   font-weight: 800;
 }
 
@@ -511,41 +509,41 @@ textarea::placeholder {
 .inventory-metrics {
   position: relative;
   display: grid;
-  gap: 14px;
+  gap: 10px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin-top: 22px;
+  margin-top: 14px;
 }
 
 .inventory-metric-card {
-  padding: 16px;
+  padding: 12px;
 }
 
 .inventory-metric-label,
 .inventory-summary-card-label {
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 800;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-soft);
 }
 
 .inventory-metric-value,
 .inventory-summary-card-value {
-  margin-top: 10px;
-  font-size: 1.8rem;
+  margin-top: 8px;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #0f172a;
 }
 
 .inventory-metric-helper {
-  margin-top: 8px;
+  margin-top: 6px;
   color: var(--text-soft);
-  font-size: 0.92rem;
+  font-size: 0.82rem;
 }
 
 .inventory-nav-panel,
 .inventory-section {
-  padding: 18px;
+  padding: 14px;
 }
 
 .inventory-nav-row {
@@ -555,25 +553,25 @@ textarea::placeholder {
 }
 
 .inventory-nav-chip {
-  min-height: 48px;
+  min-height: 40px;
 }
 
 .inventory-view-stack {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .inventory-section-head {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   align-items: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .inventory-section-title {
-  margin-top: 10px;
-  font-size: 1.9rem;
+  margin-top: 0;
+  font-size: 1.35rem;
   color: #0f172a;
 }
 
@@ -584,7 +582,7 @@ textarea::placeholder {
 
 .inventory-grid {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .inventory-grid-two {
@@ -593,11 +591,11 @@ textarea::placeholder {
 
 .inventory-grid-three {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .inventory-status-card {
-  padding: 16px;
+  padding: 12px;
 }
 
 .inventory-status-top {
@@ -608,9 +606,9 @@ textarea::placeholder {
 }
 
 .inventory-status-text {
-  margin-top: 12px;
+  margin-top: 8px;
   color: var(--text-soft);
-  line-height: 1.7;
+  line-height: 1.4;
 }
 
 .inventory-small-button {
@@ -636,18 +634,18 @@ textarea::placeholder {
 }
 
 .inventory-sign-card {
-  padding: 18px;
+  padding: 14px;
 }
 
 .inventory-sign-title {
-  margin: 0 0 14px;
-  font-size: 1.1rem;
+  margin: 0 0 10px;
+  font-size: 0.98rem;
   color: #0f172a;
 }
 
 .inventory-sign-line {
   position: relative;
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
 .inventory-sign-icon {
@@ -664,11 +662,11 @@ textarea::placeholder {
 
 .inventory-row-list {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .inventory-row-card {
-  padding: 18px;
+  padding: 14px;
 }
 
 .inventory-row-header,
@@ -684,16 +682,16 @@ textarea::placeholder {
 }
 
 .inventory-row-title {
-  font-size: 1.05rem;
+  font-size: 0.96rem;
   font-weight: 800;
   color: #0f172a;
 }
 
 .inventory-row-subtitle,
 .inventory-history-date {
-  margin-top: 6px;
+  margin-top: 4px;
   color: var(--text-soft);
-  line-height: 1.6;
+  line-height: 1.4;
 }
 
 .inventory-row-header-right,
@@ -706,15 +704,15 @@ textarea::placeholder {
 
 .inventory-row-grid {
   display: grid;
-  gap: 16px;
-  grid-template-columns: minmax(0, 1fr) 260px;
-  margin-top: 18px;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  margin-top: 12px;
 }
 
 .inventory-row-summary {
   display: grid;
-  gap: 14px;
-  padding: 16px;
+  gap: 10px;
+  padding: 12px;
 }
 
 .inventory-summary-mini {
@@ -731,18 +729,18 @@ textarea::placeholder {
 
 .inventory-summary-mini-label {
   color: var(--text-soft);
-  font-size: 0.86rem;
+  font-size: 0.8rem;
   font-weight: 700;
 }
 
 .inventory-weights-wrap {
-  margin-top: 18px;
+  margin-top: 12px;
 }
 
 .inventory-weight-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 .inventory-weight-chip {
@@ -750,7 +748,7 @@ textarea::placeholder {
   background: rgba(255, 193, 122, 0.18);
   color: var(--brand-strong);
   border-radius: 999px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   font-weight: 800;
   cursor: pointer;
 }
@@ -762,26 +760,26 @@ textarea::placeholder {
 
 .inventory-empty-card {
   width: 100%;
-  border-radius: 22px;
+  border-radius: 14px;
   border: 1px dashed rgba(148, 163, 184, 0.22);
   background: rgba(255, 249, 243, 0.96);
   color: var(--text-soft);
-  padding: 18px;
+  padding: 14px;
   text-align: center;
 }
 
 .inventory-row-actions {
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
 .inventory-scan-panel {
-  padding: 16px;
-  margin-top: 16px;
+  padding: 12px;
+  margin-top: 12px;
 }
 
 .inventory-scan-grid {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -798,11 +796,11 @@ textarea::placeholder {
   display: flex;
   gap: 10px;
   align-items: center;
-  margin-top: 12px;
-  border-radius: 16px;
-  padding: 12px 14px;
+  margin-top: 10px;
+  border-radius: 12px;
+  padding: 10px 12px;
   font-weight: 700;
-  font-size: 0.92rem;
+  font-size: 0.86rem;
 }
 
 .inventory-inline-message-success {
@@ -840,7 +838,7 @@ textarea::placeholder {
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .inventory-selected-name {
@@ -849,9 +847,9 @@ textarea::placeholder {
 }
 
 .inventory-helper-text {
-  margin-top: 10px;
+  margin-top: 8px;
   color: var(--text-soft);
-  font-size: 0.92rem;
+  font-size: 0.84rem;
 }
 
 .inventory-search-results {
@@ -861,11 +859,11 @@ textarea::placeholder {
   top: calc(100% + 6px);
   z-index: 20;
   max-height: 280px;
-  border-radius: 22px;
+  border-radius: 14px;
   border: 1px solid rgba(148, 163, 184, 0.18);
   background: rgba(255, 255, 255, 0.98);
-  padding: 8px;
-  box-shadow: 0 18px 44px rgba(60, 90, 122, 0.16);
+  padding: 6px;
+  box-shadow: 0 12px 28px rgba(33, 24, 18, 0.12);
 }
 
 .inventory-search-result {
@@ -873,9 +871,9 @@ textarea::placeholder {
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  padding: 12px;
+  padding: 10px;
   border: 1px solid transparent;
-  border-radius: 18px;
+  border-radius: 14px;
   background: rgba(255, 249, 243, 0.98);
   text-align: left;
   cursor: pointer;
@@ -897,12 +895,12 @@ textarea::placeholder {
 
 .inventory-summary-grid {
   display: grid;
-  gap: 16px;
+  gap: 12px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .inventory-summary-card {
-  padding: 18px;
+  padding: 14px;
 }
 
 .inventory-summary-card-small {
@@ -911,11 +909,11 @@ textarea::placeholder {
 }
 
 .inventory-final-actions {
-  margin-top: 20px;
+  margin-top: 14px;
 }
 
 .inventory-add-line {
-  min-width: 220px;
+  min-width: 160px;
 }
 
 .inventory-banner {
@@ -923,8 +921,8 @@ textarea::placeholder {
   justify-content: space-between;
   gap: 16px;
   align-items: center;
-  border-radius: 22px;
-  padding: 14px 16px;
+  border-radius: 14px;
+  padding: 12px 14px;
   border: 1px solid transparent;
   font-weight: 700;
 }
@@ -954,7 +952,7 @@ textarea::placeholder {
 }
 
 .inventory-loading {
-  padding: 28px;
+  padding: 22px;
   text-align: center;
 }
 
@@ -966,7 +964,7 @@ textarea::placeholder {
 
 .inventory-catalog-list {
   max-height: 640px;
-  margin-top: 18px;
+  margin-top: 12px;
   padding-right: 4px;
 }
 
@@ -974,11 +972,11 @@ textarea::placeholder {
   display: flex;
   gap: 12px;
   align-items: center;
-  padding: 14px 16px;
+  padding: 12px 14px;
 }
 
 .inventory-history-card {
-  padding: 18px;
+  padding: 14px;
 }
 
 .inventory-history-folio {
@@ -990,20 +988,20 @@ textarea::placeholder {
 .inventory-history-meta {
   display: grid;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 10px;
   color: var(--text-soft);
 }
 
 .inventory-history-note {
-  margin-top: 14px;
-  padding: 14px 16px;
-  border-radius: 18px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
   background: rgba(255, 249, 243, 0.96);
   color: var(--text-soft);
 }
 
 .inventory-history-actions {
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .inventory-history-items {
@@ -1036,8 +1034,8 @@ textarea::placeholder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 34px;
-  padding: 8px 12px;
+  min-height: 28px;
+  padding: 6px 10px;
   border-radius: 999px;
   font-size: 0.8rem;
   font-weight: 800;
@@ -1056,9 +1054,9 @@ textarea::placeholder {
 
 .inventory-toolbar {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-top: 18px;
+  margin-top: 12px;
 }
 
 .inventory-toolbar-tight {
@@ -1116,20 +1114,20 @@ textarea::placeholder {
 
 .inventory-workspace {
   display: grid;
-  gap: 18px;
-  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 14px;
+  grid-template-columns: 240px minmax(0, 1fr);
 }
 
 .inventory-zone-rail,
 .inventory-zone-stage {
-  border-radius: 26px;
+  border-radius: 16px;
   border: 1px solid rgba(201, 162, 127, 0.18);
-  background: linear-gradient(180deg, rgba(255, 249, 243, 0.98) 0%, rgba(255, 255, 255, 0.98) 100%);
-  padding: 18px;
+  background: #ffffff;
+  padding: 14px;
 }
 
 .inventory-zone-rail-header {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .inventory-zone-list,
@@ -1140,20 +1138,20 @@ textarea::placeholder {
 
 .inventory-zone-card {
   width: 100%;
-  padding: 16px;
+  padding: 12px;
   text-align: left;
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .inventory-zone-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .inventory-zone-card-active {
   border-color: rgba(238, 141, 45, 0.34);
-  background: linear-gradient(180deg, rgba(255, 236, 214, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%);
-  box-shadow: 0 14px 28px rgba(60, 90, 122, 0.1);
+  background: rgba(255, 243, 231, 0.98);
+  box-shadow: none;
 }
 
 .inventory-zone-card-head {
@@ -1172,9 +1170,9 @@ textarea::placeholder {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  margin-top: 12px;
+  margin-top: 8px;
   color: var(--text-soft);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 700;
 }
 
@@ -1187,41 +1185,41 @@ textarea::placeholder {
   justify-content: space-between;
   gap: 12px;
   align-items: flex-start;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .inventory-zone-stage-heading {
-  margin-top: 10px;
-  font-size: 1.7rem;
+  margin-top: 0;
+  font-size: 1.2rem;
   color: #0f172a;
 }
 
 .inventory-zone-stage-grid {
   display: grid;
-  gap: 16px;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  margin-bottom: 18px;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  margin-bottom: 12px;
 }
 
 .inventory-zone-stage-summary {
   display: grid;
-  gap: 12px;
-  padding: 16px;
+  gap: 10px;
+  padding: 12px;
 }
 
 .inventory-zone-footer {
-  margin-top: 18px;
+  margin-top: 12px;
 }
 
 .inventory-sale-row-card {
-  padding: 18px;
+  padding: 14px;
 }
 
 .inventory-sale-grid {
   display: grid;
-  gap: 16px;
+  gap: 12px;
   grid-template-columns: 1.3fr repeat(2, minmax(0, 0.65fr));
-  margin-top: 18px;
+  margin-top: 12px;
 }
 
 .inventory-sale-note-field {
@@ -1243,7 +1241,7 @@ textarea::placeholder {
 .inventory-modal {
   width: min(100%, 1180px);
   max-height: min(92vh, 940px);
-  padding: 22px;
+  padding: 16px;
 }
 
 .inventory-modal-header,
@@ -1260,7 +1258,7 @@ textarea::placeholder {
 }
 
 .inventory-modal-title {
-  margin-top: 12px;
+  margin-top: 4px;
 }
 
 .inventory-modal-copy {
@@ -1271,13 +1269,13 @@ textarea::placeholder {
 
 .inventory-modal-summary {
   display: grid;
-  gap: 16px;
+  gap: 12px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-top: 20px;
+  margin-top: 12px;
 }
 
 .inventory-modal-body {
-  margin-top: 20px;
+  margin-top: 12px;
   max-height: 52vh;
   padding-right: 4px;
 }
